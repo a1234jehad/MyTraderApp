@@ -138,6 +138,7 @@ class TechnicalAnalysis:
         fig.update_xaxes(
             rangeslider_visible=True, title='Zoom on Dates Using Slider')
         fig.update_yaxes(title="Stock Price")
+        fig.update_layout(title=f"MA {self.ticker}")
         fig.show()
 
     def plot_EMA(self):
@@ -166,11 +167,12 @@ class TechnicalAnalysis:
         fig.add_trace(ema50)
         fig.add_trace(candles)
 
-        fig.update_yaxes(title="Stock Price (USD)")
+        fig.update_yaxes(title="Stock Price")
         if (self.ticker[-2:] == "SR"):
             fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
         else:
             fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
+        fig.update_layout(title=f"EMA {self.ticker}")
 
         fig.show()
 
@@ -198,6 +200,7 @@ class TechnicalAnalysis:
         fig.update_xaxes(
             rangeslider_visible=True, title='Zoom on Dates Using Slider')
         fig.update_yaxes(title="Stock Price")
+        fig.update_layout(title=f"Death & Golden Crosses {self.ticker}")
         fig.show()
 
     def plot_macd(self):
@@ -288,7 +291,7 @@ class TechnicalAnalysis:
                              ), row=4, col=1)
 
         # Update titles
-        fig.update_layout(title=self.ticker)
+        fig.update_layout(title=f"MACD {self.ticker}")
         fig.update_yaxes(title_text="Price", row=1, col=1)
         fig.update_yaxes(title_text="MACD", row=2, col=1)
         fig.update_yaxes(title_text="StoOs", row=3, col=1)
@@ -331,7 +334,7 @@ class TechnicalAnalysis:
         fig.add_trace(rsi_, row=2, col=1)
         fig.add_hline(y=30, line_width=1, line_dash="dash", line_color="red", row=2, col=1)
         fig.add_hline(y=70, line_width=1, line_dash="dash", line_color="green", row=2, col=1)
-        fig.update_layout(title=self.ticker)
+        fig.update_layout(f"RSI {self.ticker}")
         fig.update_layout(height=900, width=1200,
                           showlegend=False,
                           xaxis_rangeslider_visible=False)
@@ -380,7 +383,7 @@ class TechnicalAnalysis:
         fig.add_trace(bb_low)
 
         # Add title
-        fig.update_layout(title=self.ticker)
+        fig.update_layout(title= f"Bollinger_bands {self.ticker}")
 
         if (self.ticker[-2:] == "SR"):
             if self.intv == '1d':
@@ -501,7 +504,7 @@ class TechnicalAnalysis:
         fig.add_trace(span_b)
 
         fig.update_layout(height=900, width=1000,
-                          showlegend=True)
+                          showlegend=True,title= f"Ichimoku {self.ticker}")
         if (self.ticker[-2:] == "SR"):
             if self.intv == '1d':
                 fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
