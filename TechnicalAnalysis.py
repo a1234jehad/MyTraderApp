@@ -14,7 +14,8 @@ import warnings
 warnings.simplefilter("ignore")
 import yfinance as yf
 from plotly.subplots import make_subplots
-
+from ta.trend import MACD
+from ta.momentum import StochasticOscillator
 
 class TechnicalAnalysis:
     def __init__(self, Ticker, period, intervals):
@@ -98,7 +99,7 @@ class TechnicalAnalysis:
                           title="Microsoft Candlestick Chart",
                           width=1000, height=800)
 
-        if(self.ticker[-2:] == "SR"):
+        if (self.ticker[-2:] == "SR"):
             fig.update_xaxes(
                 rangeslider_visible=True,
                 rangebreaks=[
@@ -117,7 +118,73 @@ class TechnicalAnalysis:
             )
         fig.show()
 
+    def plot_MAs(self):
+        self.stock_df['MA20'] = self.stock_df["Adj Close"].rolling(20).mean()
+        self.stock_df['MA100'] = self.stock_df["Adj Close"].rolling(100).mean()
+        ma20 = go.Scatter(x=self.stock_df['MA20'].index, y=self.stock_df['MA20'],
+                          line=dict(color='orange', width=1), name="MA20")
+        ma100 = go.Scatter(x=self.stock_df['MA100'].index, y=self.stock_df['MA100'],
+                           line=dict(color='green', width=1), name="MA100")
+        price = go.Scatter(x=self.stock_df.index, y=self.stock_df['Adj Close'],
+                           line=dict(color='blue', width=1), name="Price")
 
-TA = TechnicalAnalysis("7010.SR","1mo","5m")
+        fig = go.Figure()
+        fig.add_trace(ma20)
+        fig.add_trace(ma100)
+        fig.add_trace(price)
+
+        fig.update_xaxes(
+            rangeslider_visible=True, title='Zoom on Dates Using Slider')
+        fig.update_yaxes(title="Stock Price")
+        fig.show()
+
+    def plot_EMA(self):
+        # A EMA can be used to reduce the lag by putting more emphasis on recent price data
+        self.stock_df['MA20'] = self.stock_df["Adj Close"].rolling(20).mean()
+        self.stock_df['EMA20'] = self.stock_df["Adj Close"].ewm(span=20, adjust=False).mean()
+
+        ema20 = go.Scatter(x=self.stock_df['EMA20'].index, y=self.stock_df['EMA20'],
+                           line=dict(color='green', width=1), name="EMA20")
+        ma20 = go.Scatter(x=self.stock_df['MA20'].index, y=self.stock_df['MA20'],
+                          line=dict(color='orange', width=1), name="MA20")
+        price = go.Scatter(x=self.stock_df.index, y=self.stock_df['Adj Close'],
+                           line=dict(color='blue', width=1), name="Price")
+        fig = go.Figure()
+        fig.add_trace(ma20)
+        fig.add_trace(ema20)
+        fig.add_trace(price)
+        fig.update_xaxes(
+            rangeslider_visible=True, title='Zoom on Dates Using Slider')
+        fig.update_yaxes(title="Stock Price (USD)")
+        fig.show()
+
+    def plot_death_Golden_crosses_US(self):
+        '''
+          When a Death Cross occurs, that is a sign that a major sell off will occur. A Death Cross is said to occur typically
+          when the 50 day moving average falls below a 200 day. A Golden Cross accures when the short term average crosses
+          the long term again moving higher.
+          '''
+        gspc_df = yf.download(tickers='^gspc', period='max', interval='1d')
+        gspc_ma50 = gspc_df['Adj Close'].rolling(window=50).mean()
+        gspc_ma200 = gspc_df['Adj Close'].rolling(window=200).mean()
+        ma50 = go.Scatter(x=gspc_ma50.index, y=gspc_ma50,
+                          line=dict(color='orange', width=1), name="MA50")
+        ma200 = go.Scatter(x=gspc_ma200.index, y=gspc_ma200,
+                           line=dict(color='green', width=1), name="MA200")
+        gspc_prc = go.Scatter(x=gspc_df.index, y=gspc_df['Adj Close'],
+                              line=dict(color='blue', width=1), name="Price")
+
+        fig = go.Figure()
+        fig.add_trace(ma50)
+        fig.add_trace(ma200)
+        fig.add_trace(gspc_prc)
+
+        fig.update_xaxes(
+            rangeslider_visible=True, title='Zoom on Dates Using Slider')
+        fig.update_yaxes(title="Stock Price")
+        fig.show()
+
+
+TA = TechnicalAnalysis("MSFT", "10y", "1d")
 print(TA.stock_df)
-TA.plot_candlestick()
+# TA.plot_death_Golden_crosses_US()
