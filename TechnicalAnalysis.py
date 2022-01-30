@@ -1,3 +1,5 @@
+import datetime
+
 import numpy as np
 import pandas as pd
 from pandas_datareader import data as web
@@ -15,7 +17,7 @@ warnings.simplefilter("ignore")
 import yfinance as yf
 from plotly.subplots import make_subplots
 from ta.trend import MACD
-from ta.momentum import StochasticOscillator,rsi
+from ta.momentum import StochasticOscillator, rsi
 
 
 class TechnicalAnalysis:
@@ -150,7 +152,7 @@ class TechnicalAnalysis:
 
         self.stock_df['MA20'] = self.stock_df["Adj Close"].rolling(20).mean()
         self.stock_df['EMA20'] = self.stock_df["Adj Close"].ewm(span=20, adjust=False).mean()
-        self.stock_df['EMA50'] = self.stock_df["Adj Close"].ewm(span=20, adjust=False).mean()
+        self.stock_df['EMA50'] = self.stock_df["Adj Close"].ewm(span=50, adjust=False).mean()
         ema20 = go.Scatter(x=self.stock_df['EMA20'].index, y=self.stock_df['EMA20'],
                            line=dict(color='green', width=1), name="EMA20")
         ema50 = go.Scatter(x=self.stock_df['EMA50'].index, y=self.stock_df['EMA50'],
@@ -320,7 +322,7 @@ class TechnicalAnalysis:
         The RSI is used to determine if a security is overbought or oversold. With them you can take advantage of
          potential changes in trend. The 2 most commonly used oscillators are the RSI and Stochastic RSI.
         """
-        self.stock_df['RSI'] = rsi(self.stock_df['Close'],window=14)
+        self.stock_df['RSI'] = rsi(self.stock_df['Close'], window=14)
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
                             vertical_spacing=0.01,
                             row_heights=[0.7, 0.3])
@@ -329,12 +331,12 @@ class TechnicalAnalysis:
                                 high=self.stock_df['High'], low=self.stock_df['Low'],
                                 close=self.stock_df['Close'], name='Candlestick')
         rsi_ = go.Scatter(x=self.stock_df.index, y=self.stock_df['RSI'],
-                         line=dict(color='blue', width=2))
+                          line=dict(color='blue', width=2))
         fig.add_trace(candle, row=1, col=1)
         fig.add_trace(rsi_, row=2, col=1)
         fig.add_hline(y=30, line_width=1, line_dash="dash", line_color="red", row=2, col=1)
         fig.add_hline(y=70, line_width=1, line_dash="dash", line_color="green", row=2, col=1)
-        fig.update_layout(f"RSI {self.ticker}")
+        fig.update_layout(title =f"RSI {self.ticker}")
         fig.update_layout(height=900, width=1200,
                           showlegend=False,
                           xaxis_rangeslider_visible=False)
@@ -362,7 +364,7 @@ class TechnicalAnalysis:
         A strong trend should be noted if the price moves outside the band. If prices go over the resistance line it is
         in overbought territory and if it breaks through support it is a sign of an oversold position.
         """
-        self.stock_df['Mean'] =  self.stock_df['Close'].rolling(window=20).mean()
+        self.stock_df['Mean'] = self.stock_df['Close'].rolling(window=20).mean()
         self.stock_df['SD'] = self.stock_df['Close'].rolling(window=20).std()
         self.stock_df['BB_Hi'] = self.stock_df['Mean'] + (2 * self.stock_df['SD'])
         self.stock_df['BB_Low'] = self.stock_df['Mean'] - (2 * self.stock_df['SD'])
@@ -383,7 +385,7 @@ class TechnicalAnalysis:
         fig.add_trace(bb_low)
 
         # Add title
-        fig.update_layout(title= f"Bollinger_bands {self.ticker}")
+        fig.update_layout(title=f"Bollinger_bands {self.ticker}")
 
         if (self.ticker[-2:] == "SR"):
             if self.intv == '1d':
@@ -431,11 +433,13 @@ class TechnicalAnalysis:
          the Cloud, the stronger the trend and vice versa. When the Spans cross many times we are in a range. When
          they cross this is a sign of a reversal of trend.
         """
+
         def get_fill_color(label):
             if label >= 1:
                 return 'rgba(0,250,0,0.4)'
             else:
                 return 'rgba(250,0,0,0.4)'
+
         df = self.stock_df
 
         # Conversion
@@ -504,7 +508,7 @@ class TechnicalAnalysis:
         fig.add_trace(span_b)
 
         fig.update_layout(height=900, width=1000,
-                          showlegend=True,title= f"Ichimoku {self.ticker}")
+                          showlegend=True, title=f"Ichimoku {self.ticker}")
         if (self.ticker[-2:] == "SR"):
             if self.intv == '1d':
                 fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
@@ -519,11 +523,279 @@ class TechnicalAnalysis:
 
         fig.show()
 
-TA = TechnicalAnalysis("AMD", "1y", "1d")
-# print(TA.stock_df)
-# TA.plot_macd()
-# print(TA.stock_df)
-# TA.plot_death_Golden_crosses_US()
-#TA.plot_RSI()
+    def red_blue_white_strategy(self):
+        # back testing included
+        df = self.stock_df
+        emas_used = [3, 5, 8, 10, 12, 15, 30, 35, 40, 45, 50, 60]
+        fig = go.Figure()
+        price = go.Scatter(x=self.stock_df.index, y=self.stock_df['Adj Close'],
+                           line=dict(color='green', width=1), name="Price")
+        fig.add_trace(price)
+        for ema in emas_used:
+            df[f"Ema_{ema}"] = round(df.iloc[:, 4].ewm(span=ema, adjust=False).mean(), 2)
+            if ema < 30:
+                fig.add_trace(go.Scatter(x=self.stock_df[f"Ema_{ema}"].index, y=self.stock_df[f"Ema_{ema}"],
+                                         line=dict(color='red', width=1), name=f"EMA{ema}"))
+            else:
+                fig.add_trace(go.Scatter(x=self.stock_df[f"Ema_{ema}"].index, y=self.stock_df[f"Ema_{ema}"],
+                                         line=dict(color='blue', width=1), name=f"EMA{ema}"))
+        fig.update_yaxes(title="Stock Price")
+        if self.ticker[-2:] == "SR":
+            fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
+        else:
+            fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
+        fig.update_layout(title=f"red_blue_white_strategy {self.ticker}")
+
+        fig.show()
+
+        df = df.iloc[60:]
+        pos = 0
+        num = 0
+        percentchange = []
+        for i in df.index:
+            cmin = min(df["Ema_3"][i], df["Ema_5"][i], df["Ema_8"][i], df["Ema_10"][i], df["Ema_12"][i],
+                       df["Ema_15"][i], )
+            cmax = max(df["Ema_30"][i], df["Ema_35"][i], df["Ema_40"][i], df["Ema_45"][i], df["Ema_50"][i],
+                       df["Ema_60"][i], )
+            close = df["Adj Close"][i]
+
+            if (cmin > cmax):
+                print("Red White Blue")
+                if (pos == 0):
+                    bp = close
+                    pos = 1
+                    print("Buying now at " + str(bp))
+
+
+            elif (cmin < cmax):
+                print("Blue White Red")
+                if (pos == 1):
+                    pos = 0
+                    sp = close
+                    print("Selling now at " + str(sp))
+                    pc = (sp / bp - 1) * 100
+                    percentchange.append(pc)
+            if (num == df["Adj Close"].count() - 1 and pos == 1):
+                pos = 0
+                sp = close
+                print("Selling now at " + str(sp))
+                pc = (sp / bp - 1) * 100
+                percentchange.append(pc)
+
+            num += 1
+
+        print(percentchange)
+
+        gains = 0
+        ng = 0
+        losses = 0
+        nl = 0
+        totalR = 1
+
+        for i in percentchange:
+            if (i > 0):
+                gains += i
+                ng += 1
+            else:
+                losses += i
+                nl += 1
+            totalR = totalR * ((i / 100) + 1)
+
+        totalR = round((totalR - 1) * 100, 2)
+
+        if (ng > 0):
+            avgGain = gains / ng
+            maxR = str(max(percentchange))
+        else:
+            avgGain = 0
+            maxR = "undefined"
+
+        if (nl > 0):
+            avgLoss = losses / nl
+            maxL = str(min(percentchange))
+            ratio = str(-avgGain / avgLoss)
+        else:
+            avgLoss = 0
+            maxL = "undefined"
+            ratio = "inf"
+
+        if (ng > 0 or nl > 0):
+            battingAvg = ng / (ng + nl)
+        else:
+            battingAvg = 0
+
+        print()
+        print("Results for " + self.ticker + " going back to " + str(df.index[0]) + ", Sample size: " + str(
+            ng + nl) + " trades")
+        print("EMAs used: " + str(emas_used))
+        print("Batting Avg: " + str(battingAvg))
+        print("Gain/loss ratio: " + ratio)
+        print("Average Gain: " + str(avgGain))
+        print("Average Loss: " + str(avgLoss))
+        print("Max Return: " + maxR)
+        print("Max Loss: " + maxL)
+        print("Total return over " + str(ng + nl) + " trades: " + str(totalR) + "%")
+
+    def Green_Line_Breakout_strategy(self):
+        # GLV = green line value
+        # ATH then rest for 3 months
+        df = self.stock_df
+        df.drop(df[df["Volume"] < 1000].index, inplace=True)
+        dfmonth = df.groupby(pd.Grouper(freq="M"))["High"].max()
+        now = datetime.datetime.now()
+        glDate = 0
+        lastGLV = 0
+        currentDate = ""
+        curentGLV = 0
+        glvs = []
+        for index, value in dfmonth.items():
+            if value > curentGLV:
+                curentGLV = value
+                currentDate = index
+                counter = 0
+            if value < curentGLV:
+                counter = counter + 1
+
+                if counter == 3 and ((index.month != now.month) or (index.year != now.year)):
+                    if curentGLV != lastGLV:
+                        print(f"{curentGLV} on {glDate}")
+                        if glDate != 0:
+                            glvs.append(curentGLV)
+                    glDate = currentDate
+                    lastGLV = curentGLV
+                    counter = 0
+
+        if lastGLV == 0:
+            message = self.ticker + " has not formed a green line yet"
+        else:
+            message = ("Last Green Line: " + str(lastGLV) + " on " + str(glDate))
+        close = self.stock_df['Adj Close']
+        high = self.stock_df['High']
+        low = self.stock_df['Low']
+        open = self.stock_df['Open']
+        candles = go.Candlestick(x=self.stock_df.index, open=open, high=high,
+                                 low=low, close=close, name="Candles")
+        fig = go.Figure()
+        fig.add_trace(candles)
+        fig.update_yaxes(title="Stock Price")
+        if (self.ticker[-2:] == "SR"):
+            fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
+        else:
+            fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
+        fig.update_layout(title=f"GLV {self.ticker}")
+        for x in glvs:
+            fig.add_hline(y=x)
+        fig.show()
+
+    def plot_resistance_pivot(self):
+        df = self.stock_df
+        df["High"].plot(label = 'High')
+
+        pivots = []
+        dates = []
+        counter = 0
+        lastPivot = 0
+
+        Range     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        dateRange = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        for i in df.index:
+            current_max = max(Range, default=0)
+            value = round(df['High'][i], 2)
+            Range = Range[1:9]
+            Range.append(value)
+            dateRange = dateRange[1:9]
+            dateRange.append(i)
+            if current_max == max(Range, default=0):
+                counter += 1
+            else:
+                counter = 0
+            if counter == 5:
+                lastPivot = current_max
+                dateloc = Range.index(lastPivot)
+                lastDate = dateRange[dateloc]
+
+                pivots.append(lastPivot)
+                dates.append(lastDate)
+        timeD = datetime.timedelta(days=30)
+
+        for i in range(len(pivots)):
+            plt.plot_date([dates[i],dates[i]+timeD],[pivots[i],pivots[i]], linestyle = "-", linewidth = 2, marker = ",")
+        plt.show()
+
+    def rm_claculate(self,AvgGain,AvgLoss):
+        # AvgGain = 15
+        # AvgLoss = 5
+        smaUsed = [50, 200]
+        emaUsed = [21]
+        df = self.stock_df
+        close = self.stock_df['Adj Close'][-1]
+        maxStop = close * ((100 - AvgLoss) / 100)
+        Target1R = round(close * ((100 + AvgGain) / 100), 2)
+        Target2R = round(close * (((100 + (2 * AvgGain)) / 100)), 2)
+        Target3R = round(close * (((100 + (3 * AvgGain)) / 100)), 2)
+        for x in smaUsed:
+            sma = x
+            df["SMA_" + str(sma)] = round(df.iloc[:, 4].rolling(window=sma).mean(), 2)
+        for x in emaUsed:
+            ema = x
+            df['EMA_' + str(ema)] = round(df.iloc[:, 4].ewm(span=ema, adjust=False).mean(), 2)
+        sma50 = round(df["SMA_50"][-1], 2)
+        sma200 = round(df["SMA_200"][-1], 2)
+        ema21 = round(df["EMA_21"][-1], 2)
+        low5 = round(min(df["Low"].tail(5)), 2)
+        pf50 = round(((close / sma50) - 1) * 100, 2)
+        check50 = df["SMA_50"][-1] > maxStop
+        pf200 = round(((close / sma200) - 1) * 100, 2)
+        check200 = ((close / df["SMA_200"][-1]) - 1) * 100 > 100
+        pf21 = round(((close / ema21) - 1) * 100, 2)
+        check21 = df["EMA_21"][-1] > maxStop
+        pfl = round(((close / low5) - 1) * 100, 2)
+        checkl = low5 > maxStop
+        print()
+        print("Current Stock: " + self.ticker + " Price: " + str(round(close, 2)))
+        print("21 EMA: " + str(ema21) + " | 50 SMA: " + str(sma50) + " | 200 SMA: " + str(
+            sma200) + " | 5 day Low: " + str(
+            low5))
+        print("-------------------------------------------------")
+        print("Max Stop: " + str(round(maxStop, 2)))
+        print("Price Targets:")
+        print("1R: " + str(Target1R))
+        print("2R: " + str(Target2R))
+        print("3R: " + str(Target3R))
+        print("From 5 Day Low " + str(pfl) + "% -Within Max Stop: " + str(checkl))
+        print("From 21 day EMA " + str(pf21) + "% -Within Max Stop: " + str(check21))
+        print("From 50 day SMA " + str(pf50) + "% -Within Max Stop: " + str(check50))
+        print("From 200 Day SMA " + str(pf200) + "% -In Danger Zone (Over 100% from 200 SMA): " + str(check200))
+        print()
+
+    def look_for_volume_stocks(self):
+        df_US = pd.read_csv("US.csv")
+        df_SA = pd.read_csv("Tasi.csv")
+        df = pd.DataFrame()
+        df['Tickers'] = pd.DataFrame(df_US['Ticker'].tolist()+df_SA['Ticker'].tolist())
+        vol_stocks = []
+        for stock in df['Tickers']:
+            try:
+                stock_info = yf.Ticker(stock)
+                history = stock_info.history(period="5d")
+                pre_avg_vol = history['Volume'].iloc[1:4:1].mean()
+                vol = history['Volume'][-1]
+                if vol>pre_avg_vol *2:
+                    vol_stocks.append(stock)
+            except:
+                pass
+        print(vol_stocks)
+TA = TechnicalAnalysis("7010.SR", "5y", "1d")
+TA.plot_MAs()
+TA.plot_EMA()
+TA.plot_death_Golden_crosses()
+TA.plot_macd()
+TA.plot_RSI()
 TA.plot_Bollinger_bands()
 TA.plot_Ichimoku()
+TA.red_blue_white_strategy()
+TA.Green_Line_Breakout_strategy()
+TA.plot_resistance_pivot()
+TA.rm_claculate(15,5)
+#TA.look_for_volume_stocks()
