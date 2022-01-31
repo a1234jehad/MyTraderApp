@@ -203,6 +203,17 @@ class TechnicalAnalysis:
             rangeslider_visible=True, title='Zoom on Dates Using Slider')
         fig.update_yaxes(title="Stock Price")
         fig.update_layout(title=f"Death & Golden Crosses {self.ticker}")
+        if (self.ticker[-2:] == "SR"):
+            if self.intv == '1d':
+                fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
+            else:
+                fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"]), dict(bounds=[15, 10], pattern="hour")])
+
+        else:
+            if self.intv == '1d':
+                fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
+            else:
+                fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"]), dict(bounds=[16, 9.5], pattern="hour")])
         fig.show()
 
     def plot_macd(self):
@@ -540,10 +551,17 @@ class TechnicalAnalysis:
                 fig.add_trace(go.Scatter(x=self.stock_df[f"Ema_{ema}"].index, y=self.stock_df[f"Ema_{ema}"],
                                          line=dict(color='blue', width=1), name=f"EMA{ema}"))
         fig.update_yaxes(title="Stock Price")
-        if self.ticker[-2:] == "SR":
-            fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
+        if (self.ticker[-2:] == "SR"):
+            if self.intv == '1d':
+                fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
+            else:
+                fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"]), dict(bounds=[15, 10], pattern="hour")])
+
         else:
-            fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
+            if self.intv == '1d':
+                fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
+            else:
+                fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"]), dict(bounds=[16, 9.5], pattern="hour")])
         fig.update_layout(title=f"red_blue_white_strategy {self.ticker}")
 
         fig.show()
@@ -679,9 +697,16 @@ class TechnicalAnalysis:
         fig.add_trace(candles)
         fig.update_yaxes(title="Stock Price")
         if (self.ticker[-2:] == "SR"):
-            fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
+            if self.intv == '1d':
+                fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"])])
+            else:
+                fig.update_xaxes(rangebreaks=[dict(bounds=["fri", "sun"]), dict(bounds=[15, 10], pattern="hour")])
+
         else:
-            fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
+            if self.intv == '1d':
+                fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])
+            else:
+                fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"]), dict(bounds=[16, 9.5], pattern="hour")])
         fig.update_layout(title=f"GLV {self.ticker}")
         for x in glvs:
             fig.add_hline(y=x)
@@ -786,9 +811,13 @@ class TechnicalAnalysis:
             except:
                 pass
         print(vol_stocks)
-TA = TechnicalAnalysis("7010.SR", "5y", "1d")
-TA.plot_MAs()
-TA.plot_EMA()
+
+    def back_test_SMA(self):
+        pass
+TA = TechnicalAnalysis("AMD", "5d", "1m")
+print(TA.stock_df)
+# TA.plot_MAs()
+# TA.plot_EMA()
 TA.plot_death_Golden_crosses()
 TA.plot_macd()
 TA.plot_RSI()
