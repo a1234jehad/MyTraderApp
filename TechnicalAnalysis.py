@@ -1,4 +1,5 @@
 import datetime
+from time import strftime
 
 import numpy as np
 import pandas as pd
@@ -18,6 +19,7 @@ import yfinance as yf
 from plotly.subplots import make_subplots
 from ta.trend import MACD
 from ta.momentum import StochasticOscillator, rsi
+import talib as ta
 
 
 class TechnicalAnalysis:
@@ -347,7 +349,7 @@ class TechnicalAnalysis:
         fig.add_trace(rsi_, row=2, col=1)
         fig.add_hline(y=30, line_width=1, line_dash="dash", line_color="red", row=2, col=1)
         fig.add_hline(y=70, line_width=1, line_dash="dash", line_color="green", row=2, col=1)
-        fig.update_layout(title =f"RSI {self.ticker}")
+        fig.update_layout(title=f"RSI {self.ticker}")
         fig.update_layout(height=900, width=1200,
                           showlegend=False,
                           xaxis_rangeslider_visible=False)
@@ -714,14 +716,14 @@ class TechnicalAnalysis:
 
     def plot_resistance_pivot(self):
         df = self.stock_df
-        df["High"].plot(label = 'High')
+        df["High"].plot(label='High')
 
         pivots = []
         dates = []
         counter = 0
         lastPivot = 0
 
-        Range     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        Range = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         dateRange = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         for i in df.index:
@@ -745,10 +747,10 @@ class TechnicalAnalysis:
         timeD = datetime.timedelta(days=30)
 
         for i in range(len(pivots)):
-            plt.plot_date([dates[i],dates[i]+timeD],[pivots[i],pivots[i]], linestyle = "-", linewidth = 2, marker = ",")
+            plt.plot_date([dates[i], dates[i] + timeD], [pivots[i], pivots[i]], linestyle="-", linewidth=2, marker=",")
         plt.show()
 
-    def rm_claculate(self,AvgGain,AvgLoss):
+    def rm_claculate(self, AvgGain, AvgLoss):
         # AvgGain = 15
         # AvgLoss = 5
         smaUsed = [50, 200]
@@ -798,7 +800,7 @@ class TechnicalAnalysis:
         df_US = pd.read_csv("US.csv")
         df_SA = pd.read_csv("Tasi.csv")
         df = pd.DataFrame()
-        df['Tickers'] = pd.DataFrame(df_US['Ticker'].tolist()+df_SA['Ticker'].tolist())
+        df['Tickers'] = pd.DataFrame(df_US['Ticker'].tolist() + df_SA['Ticker'].tolist())
         vol_stocks = []
         for stock in df['Tickers']:
             try:
@@ -806,16 +808,111 @@ class TechnicalAnalysis:
                 history = stock_info.history(period="5d")
                 pre_avg_vol = history['Volume'].iloc[1:4:1].mean()
                 vol = history['Volume'][-1]
-                if vol>pre_avg_vol *2:
+                if vol > pre_avg_vol * 2:
                     vol_stocks.append(stock)
             except:
                 pass
         print(vol_stocks)
 
-    def back_test_SMA(self):
-        pass
-TA = TechnicalAnalysis("AMD", "5d", "1m")
-print(TA.stock_df)
+    def pattern_detector(self):
+        data = self.stock_df
+        close = self.stock_df['Adj Close']
+        high = self.stock_df['High']
+        low = self.stock_df['Low']
+        open = self.stock_df['Open']
+        patterns = {
+            "CDL2CROWS": "Two Crows",
+            "CDL3BLACKCROWS": "Three Black Crows",
+            "CDL3INSIDE": "Three Inside Up/Down",
+            "CDL3LINESTRIKE": "Three-Line Strike",
+            "CDL3OUTSIDE": "Three Outside Up/Down",
+            "CDL3STARSINSOUTH": "Three Stars In The South",
+            "CDL3WHITESOLDIERS": "Three Advancing White Soldiers",
+            "CDLABANDONEDBABY": "Abandoned Baby",
+            "CDLADVANCEBLOCK": "Advance Block",
+            "CDLBELTHOLD": "Belt-hold",
+            "CDLBREAKAWAY": "Breakaway",
+            "CDLCLOSINGMARUBOZU": "Closing Marubozu",
+            "CDLCONCEALBABYSWALL": "Concealing Baby Swallow",
+            "CDLCOUNTERATTACK": "Counterattack",
+            "CDLDARKCLOUDCOVER": "Dark Cloud Cover",
+            "CDLDOJI": "Doji",
+            "CDLDOJISTAR": "Doji Star",
+            "CDLDRAGONFLYDOJI": "Dragonfly Doji",
+            "CDLENGULFING": "Engulfing Pattern",
+            "CDLEVENINGDOJISTAR": "Evening Doji Star",
+            "CDLEVENINGSTAR": "Evening Star",
+            "CDLGAPSIDESIDEWHITE": "Up/Down-gap side-by-side white lines",
+            "CDLGRAVESTONEDOJI": "Gravestone Doji",
+            "CDLHAMMER": "Hammer",
+            "CDLHANGINGMAN": "Hanging Man",
+            "CDLHARAMI": "Harami Pattern",
+            "CDLHARAMICROSS": "Harami Cross Pattern",
+            "CDLHIGHWAVE": "High-Wave Candle",
+            "CDLHIKKAKE": "Hikkake Pattern",
+            "CDLHIKKAKEMOD": "Modified Hikkake Pattern",
+            "CDLHOMINGPIGEON": "Homing Pigeon",
+            "CDLIDENTICAL3CROWS": "Identical Three Crows",
+            "CDLINNECK": "In-Neck Pattern",
+            "CDLINVERTEDHAMMER": "Inverted Hammer",
+            "CDLKICKING": "Kicking",
+            "CDLKICKINGBYLENGTH": "Kicking (bull/bear) determined by the longer marubozu",
+            "CDLLADDERBOTTOM": "Ladder Bottom",
+            "CDLLONGLEGGEDDOJI": "Long Legged Doji",
+            "CDLLONGLINE": "Long Line Candle",
+            "CDLMARUBOZU": "Marubozu",
+            "CDLMATCHINGLOW": "Matching Low",
+            "CDLMATHOLD": "Mat Hold",
+            "CDLMORNINGDOJISTAR": "Morning Doji Star",
+            "CDLMORNINGSTAR": "Morning Star",
+            "CDLONNECK": "On-Neck Pattern",
+            "CDLPIERCING": "Piercing Pattern",
+            "CDLRICKSHAWMAN": "Rickshaw Man",
+            "CDLRISEFALL3METHODS": "Rising/Falling Three Methods",
+            "CDLSEPARATINGLINES": "Separating Lines",
+            "CDLSHOOTINGSTAR": "Shooting Star",
+            "CDLSHORTLINE": "Short Line Candle",
+            "CDLSPINNINGTOP": "Spinning Top",
+            "CDLSTALLEDPATTERN": "Stalled Pattern",
+            "CDLSTICKSANDWICH": "Stick Sandwich",
+            "CDLTAKURI": "Takuri (Dragonfly) Doji with very long lower shadow)",
+            "CDLTASUKIGAP": "Tasuki Gap",
+            "CDLTHRUSTING": "Thrusting Pattern",
+            "CDLTRISTAR": "Tristar Pattern",
+            "CDLUNIQUE3RIVER": "Unique 3 River",
+            "CDLUPSIDEGAP2CROWS": "Upside Gap Two Crows",
+            "CDLXSIDEGAP3METHODS": "Upside/Downside Gap Three Methods"
+        }
+        patterns_detect = {}
+        for key, value in patterns.items():
+            result = getattr(ta, f'{key}')(open, high, low, close)
+            data[value] = result
+            days = data[data[f'{value}'] !=0 ]
+            if days.size > 0:
+                last_day = days.index[-1]
+
+                patterns_detect[f'{value}'] = last_day
+
+        # patterns_description = {
+        #
+        # }
+        pt = sorted([(value,key) for (key,value) in patterns_detect.items()],reverse=True)
+        for key,value in pt:
+
+            key = key.to_pydatetime()
+            key_date = key.strftime('%Y-%m-%d')
+            key_time = key.strftime('%H:%M:%S')
+
+            # st_key =  datetime.strptime(str(key),'%Y-%m-%d %H:%M:%S')
+            # msg += f'{st_key[0:10]} {value}\n'
+            if key_time != "00:00:00":
+                print(key_date,key_time,value)
+            else:
+                print(key_date,value)
+
+
+TA = TechnicalAnalysis("MSFT", "5d", "1m")
+#print(TA.stock_df)
 # TA.plot_MAs()
 # TA.plot_EMA()
 TA.plot_death_Golden_crosses()
@@ -827,4 +924,5 @@ TA.red_blue_white_strategy()
 TA.Green_Line_Breakout_strategy()
 TA.plot_resistance_pivot()
 TA.rm_claculate(15,5)
-#TA.look_for_volume_stocks()
+# TA.look_for_volume_stocks()
+TA.pattern_detector()
