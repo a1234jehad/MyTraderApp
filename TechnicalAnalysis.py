@@ -27,6 +27,8 @@ class TechnicalAnalysis:
         # Valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
         # Valid intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo
         self.stock_df = yf.download(tickers=Ticker, period=period, interval=intervals)
+        self.stock_df = self.stock_df[self.stock_df["Volume"]>0]
+        #self.stock_df = self.stock_df.drop("2022-01-16")
         self.ticker = Ticker
         self.intv = intervals
 
@@ -580,31 +582,31 @@ class TechnicalAnalysis:
             close = df["Adj Close"][i]
 
             if (cmin > cmax):
-                print("Red White Blue")
+                #print("Red White Blue")
                 if (pos == 0):
                     bp = close
                     pos = 1
-                    print("Buying now at " + str(bp))
+                    #print("Buying now at " + str(bp))
 
 
             elif (cmin < cmax):
-                print("Blue White Red")
+                #print("Blue White Red")
                 if (pos == 1):
                     pos = 0
                     sp = close
-                    print("Selling now at " + str(sp))
+                    #print("Selling now at " + str(sp))
                     pc = (sp / bp - 1) * 100
                     percentchange.append(pc)
             if (num == df["Adj Close"].count() - 1 and pos == 1):
                 pos = 0
                 sp = close
-                print("Selling now at " + str(sp))
+                #print("Selling now at " + str(sp))
                 pc = (sp / bp - 1) * 100
                 percentchange.append(pc)
 
             num += 1
 
-        print(percentchange)
+        #print(percentchange)
 
         gains = 0
         ng = 0
@@ -911,8 +913,9 @@ class TechnicalAnalysis:
                 print(key_date,value)
 
 
-TA = TechnicalAnalysis("MSFT", "5d", "1m")
-#print(TA.stock_df)
+TA = TechnicalAnalysis("3002.SR", "5y", "1d")
+print(TA.stock_df.tail(50))
+
 # TA.plot_MAs()
 # TA.plot_EMA()
 TA.plot_death_Golden_crosses()

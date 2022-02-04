@@ -22,7 +22,7 @@ class StockData:
         self.stock = yf.Ticker(self.ticker)
         self.starting_date = f"{self.starting_year}-{self.starting_month}-{self.starting_day}"
         self.ending_date = f"{self.ending_year}-{self.ending_month}-{self.ending_day}"
-
+        self.stock
     def get_ticker(self):
         return self.ticker
 
