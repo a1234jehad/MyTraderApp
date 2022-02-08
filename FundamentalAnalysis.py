@@ -18,7 +18,7 @@ class FundamentalAnalysis:
         x.field_names = ["Type", "Info", "Description "]
         needed_info = ['sector', "fullTimeEmployees", 'industry', 'ebitdaMargins', 'profitMargins', 'grossMargins',
                        'revenueGrowth', 'operatingMargins', 'earningsGrowth', 'currentRatio', 'returnOnAssets',
-                       'debtToEquity', 'returnOnEquity', 'operatingCashflow', 'totalCash', 'totalDebt', 'totalRevenue',
+                       'debtToEquity', 'returnOnEquity', 'operatingCashflow', 'totalCash', 'totalDebt', 'totalRevenue','bookValue'
                        'currentPrice', 'targetLowPrice','targetMedianPrice','recommendationKey' ]
 
         description = {
@@ -74,5 +74,5 @@ class FundamentalAnalysis:
     def plot_cashflow_quart(self):
         pass
 
-FA = FundamentalAnalysis("7010.SR")
+FA = FundamentalAnalysis("3002.SR")
 FA.get_basic_info()
