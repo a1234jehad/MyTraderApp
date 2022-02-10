@@ -74,5 +74,5 @@ class FundamentalAnalysis:
     def plot_cashflow_quart(self):
         pass
 
-FA = FundamentalAnalysis("3002.SR")
+FA = FundamentalAnalysis("7002.SR")
 FA.get_basic_info()
