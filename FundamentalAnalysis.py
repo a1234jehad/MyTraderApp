@@ -13,8 +13,10 @@ class FundamentalAnalysis:
         x.hrules = 1
         print("Summary of the company:", '\n')
         print()
-        print(textwrap.fill(info['longBusinessSummary'], 140))
-        print()
+        try:
+            print(textwrap.fill(info['longBusinessSummary'], 140))
+        except Exception:
+            print()
         x.field_names = ["Type", "Info", "Description "]
         needed_info = ['sector', "fullTimeEmployees", 'industry', 'ebitdaMargins', 'profitMargins', 'grossMargins',
                        'revenueGrowth', 'operatingMargins', 'earningsGrowth', 'currentRatio', 'returnOnAssets',
@@ -74,5 +76,5 @@ class FundamentalAnalysis:
     def plot_cashflow_quart(self):
         pass
 
-FA = FundamentalAnalysis("7002.SR")
+FA = FundamentalAnalysis("7010.SR")
 FA.get_basic_info()
