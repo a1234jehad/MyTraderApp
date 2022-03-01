@@ -52,4 +52,4 @@ class RedditNLP:
 
 
 RN = RedditNLP()
-RN.strategy1(50,"bitcoin")
+RN.strategy1(50,"microsoft")

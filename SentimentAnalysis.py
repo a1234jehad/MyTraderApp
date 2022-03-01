@@ -22,6 +22,6 @@ class SentimentAnalysis:
         return sentiment_score
 
 
-s = SentimentAnalysis("AAPL")
+s = SentimentAnalysis("FB")
 
 s.plot_sent()
