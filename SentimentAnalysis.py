@@ -5,11 +5,11 @@ class SentimentAnalysis:
     def __init__(self, ticker):
         self.ticker = ticker
 
-    def plot_sent(self):
+    def plot_Sentiment(self):
         stocks = Sentiment(self.ticker)
         stocks.plot()
 
-    def get_sent(self):
+    def get_Sentiment(self):
         stocks = Sentiment(self.ticker)
         sentiment_score = stocks.get_sentiment(days=30)  # Get the sentiment for the past 4 days.
         print(sentiment_score)  # Returns a float with the sentiment score.
@@ -22,6 +22,6 @@ class SentimentAnalysis:
         return sentiment_score
 
 
-s = SentimentAnalysis("FB")
 
-s.plot_sent()
+
+
