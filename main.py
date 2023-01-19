@@ -15,7 +15,7 @@ intervals = "1d"
 
 
 
-my_AI = AI(Ticker,period,intervals)
+#my_AI = AI(Ticker,period,intervals)
 my_sent = SentimentAnalysis(Ticker)
 my_TA = TechnicalAnalysis(Ticker,period,intervals)
 # fixing stocks & stockdata toDo

@@ -913,7 +913,7 @@ class TechnicalAnalysis:
                 print(key_date,value)
 
 
-TA = TechnicalAnalysis("FB", "5y", "1d")
+TA = TechnicalAnalysis("MSFT", "5y", "1d")
 print(TA.stock_df.tail(50))
 
 # TA.plot_MAs()

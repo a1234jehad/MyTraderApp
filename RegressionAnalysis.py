@@ -22,6 +22,7 @@ class RegressionAnalysis:
         self.df = self.stock.get_adj_close_in_period()
         self.df = self.df.asfreq('d')
         self.df = self.df.fillna(method='ffill')  # fill missing with avg
+        print("ss",self.df)
 
     def performe_RA(self,frame):
         sns.set_style('darkgrid')
@@ -39,6 +40,8 @@ class RegressionAnalysis:
         train_df = self.df.iloc[30:trainings]
         test_df = self.df.iloc[trainings:]
         # Define training model for "frame" days Change will lead to different results
+        print(np.asarray(self.df))
+
         train_model = AutoReg(self.df, frame).fit(cov_type="HC0")
         start = len(train_df)
         end = len(train_df) + len(test_df) - 1
@@ -47,7 +50,7 @@ class RegressionAnalysis:
 
         ax = test_df.plot(ax=ax)
         ax = prediction.plot(ax=ax)
-        forecast = train_model.predict(start=end, end=end + 160, dynamic=True)
+        forecast = train_model.predict(start=end, end=end + 60, dynamic=True)
         ax = forecast.plot(ax=ax)
         plt.show()
         # Get starting price of prediction
@@ -60,7 +63,7 @@ class RegressionAnalysis:
 
 
 
-Ra = RegressionAnalysis(StockData("INTC", 2017, 1, 1, 2022, 1, 26))
-print(type(Ra.df))
+Ra = RegressionAnalysis(StockData("amzn", 2017, 1, 1, 2021, 8, 2))
+print("ss",type(Ra.df))
 print(Ra.df)
-Ra.performe_RA(779)
+Ra.performe_RA(750)
